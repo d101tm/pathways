@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from __future__ import print_function
 import xlrd
 import os,sys
@@ -49,13 +49,50 @@ for rownum in range(1,sheet.nrows):
         if val:
             Project(name, order, colnames[p], val)
             
+# OK, now create the output
+
 for p in pathcols:
     pathname = colnames[p]
+    pathid = ''.join([part[0:4] for part in pathname.lower().split()[0:2]])
     path = Path.get(pathname)
-    print(pathname)
     path.projects.sort(key=lambda item:item.key)
-    for item in path.projects:
-        print("%40s Level %s %s" % (item.name, item.level, "Required" if item.required else ""))
+    with open('Path ' + pathname + '.html', 'w', encoding='utf-8') as outfile:
+        outfile.write("""    <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script>
+        jQ = jQuery.noConflict();
+    </script>
+    <style type="text/css">
+    </style>
+    """)
+        outfile.write('<h2>%s</h2>' % pathname)
+        level = 0
+        electives = []
+        for item in path.projects:
+            if item.level != level:
+                outfile.write('<h3>Level %s</h3>' % item.level)
+                level = item.level
+                inelectives = False
+                itemnum = 0
+            itemnum += 1
+            itemid = '%s%s%s' % (pathid, level, itemnum)
+            if item.required:
+                outfile.write('<div class="req-project">\n')
+                outfile.write('<div class="projname">%s</div>\n' % item.name)
+            elif not inelectives:
+                outfile.write('<h4>Electives (Choose %d)</h4>\n' % [0, 0, 0, 2, 1, 1][level])   
+                inelectives = True
+            if not item.required:
+                outfile.write('<div class="elective-project" id="%s">\n' % itemid)
+                outfile.write('<div class="projname" onclick="jQ(\'#%sopen, #%sclosed, #%sdesc\').toggle()">' % (itemid, itemid, itemid))
+                outfile.write('<span id="%sopen" style="display:none">&#x25be; %s</span>\n' % (itemid, item.name)) 
+                outfile.write('<span id="%sclosed">&#x25b8; %s</span>' % (itemid, item.name))
+                outfile.write('<div id="%sdesc" style="display:none;">\n' % itemid)
+            outfile.write(open(item.name+'.html', 'r', encoding='utf-8').read().encode('ascii','xmlcharrefreplace').decode())
+            if not item.required:
+                outfile.write('</div>\n')
+            outfile.write('</div>\n')
+        
+
     
             
 
