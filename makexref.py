@@ -73,11 +73,12 @@ for p in pathcols:
     path.projects.sort(key=lambda item:item.key)
     with open('Path ' + pathname + '.html', 'w', encoding='utf-8') as outfile:
         outfile.write("""    <style type="text/css">
-    .pathname {font-size: 175%; font-weight: bold; background: #004165; color: white;}
-    .level {font-size: 150%; font-weight: bold; background: #f2df7480}
+    .pathname {font-size: 175%; font-weight: bold; background: #004165; color: white; padding: 3px;}
+    .level {font-size: 150%; font-weight: bold; background: #f2df7480; margin-top: 1em; padding: 3px; margin-bottom: 0.5em;}
     .projname {font-size: 125%; font-weight: bold; color: #772432}
     .electives {background: #00416520; }
-    .electives-header {font-size: 135%; font-weight: bold; background: #00416520; color: black; margin-top: 1em; padding-bottom: 1em;}
+    .electives-header {font-size: 135%; font-weight: bold; background: #00416520; color: black; margin-top: 1em; padding-bottom: 0.5em;}
+    .projdesc {margin-bottom: 2em;}
     </style>
 """)
         outfile.write('<h2 class="pathname">%s</h2>\n' % pathname)
@@ -101,10 +102,9 @@ for p in pathcols:
             outfile.write('<div class="%s-project">\n' % ('req' if item.required else 'elective'))
 
             outfile.write('<div class="projname" onclick="jQuery(\'#%sopen, #%sclosed, #%sdesc\').toggle()">' % (itemid, itemid, itemid))
-            outfile.write('<span id="%sopen" style="display:none">&#x2296; %s</span>\n' % (itemid, item.name)) 
-            outfile.write('<span id="%sclosed">&#x2295; %s</span>' % (itemid, item.name))
+            outfile.write('<span id="%sopen" style="display:none">&#x2296;</span><span id="%sclosed">&#x2295;</span> %s\n' % (itemid, itemid, item.name)) 
             outfile.write('</div --projname-->\n')
-            outfile.write('<div id="%sdesc" style="display:none;">\n' % itemid)
+            outfile.write('<div id="%sdesc" class="projdesc" style="display:none;">\n' % itemid)
             outfile.write(open(item.name+'.html', 'r', encoding='utf-8').read().encode('ascii','xmlcharrefreplace').decode())
             outfile.write('</div  --projdesc-->\n')
             outfile.write('</div --whatever-project-->\n')
