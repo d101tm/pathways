@@ -48,7 +48,7 @@ levels = {1: "Mastering Fundamentals",
           5: "Demonstrating Expertise"}
         
 styleinfo = """    <style type="text/css">
-    .pathname {font-size: 175%; font-weight: bold; background: #004165; color: white; padding: 3px;}
+    .pathname-header {font-size: 175%; font-weight: bold; background: #004165; color: white; padding: 3px; margin-top: 2em; margin-bottom: 0.5em;}
     .level {font-size: 150%; font-weight: bold; background: #f2df7480; margin-top: 1em; padding: 3px; margin-bottom: 0.5em;}
     .projname {font-size: 125%; font-weight: bold; color: #772432}
     .electives {background: #00416520; }
@@ -104,8 +104,21 @@ for p in pathcols:
     with open('Path ' + pathname + '.html', 'w', encoding='utf-8') as outfile:
         outfiles.add(outfile)
         outfile.write(styleinfo)
-        outfiles.write('<h2 class="pathname">%s</h2>\n' % pathname)
+        outfiles.write('<div class="pathname-header">\n')
+        # Write the expandable header for the all-in-one file
+        allout.write('<div class="pathname" onclick="jQuery(\'#%sopen, #%sclosed, #%sdesc\').toggle()">' % (pathid, pathid, pathid))
+        allout.write('<span id="%sopen" style="display:none">&#x2296;</span><span id="%sclosed">&#x2295;</span> %s\n' % (pathid, pathid, pathname)) 
+        allout.write('</div>\n')
+        
+        # Write the normal header for the file-per-path version
+        outfile.write('<h2 class="pathname">%s</h2>\n' % pathname)
+        outfiles.write('</div>')  # Close the pathname header
         outfiles.write('<p class="blurb">%s</p>\n' % path.blurb)
+        
+        # Write the wrapper for the all-in-one file
+        allout.write('<div id="%sdesc" style="display:none">\n' % pathid)
+        
+        # Write the details
         level = 0
         inelectives = False
         for item in path.projects:
@@ -135,6 +148,9 @@ for p in pathcols:
             outfiles.write('</div>\n')
         
         outfiles.delete(outfile)
+        
+        # Close the wrapper
+        allout.write('</div>\n')  
 
     
             
