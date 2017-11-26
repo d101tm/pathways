@@ -88,7 +88,7 @@ for p in pathcols:
         for item in path.projects:
             if item.level != level:
                 if inelectives:
-                  outfile.write('</div --electives-->\n')
+                  outfile.write('</div>\n')
                 outfile.write('<h3 class="level">Level %s: %s</h3>\n' % (item.level, levels[item.level]))
                 level = item.level
                 inelectives = False
@@ -103,13 +103,13 @@ for p in pathcols:
 
             outfile.write('<div class="projname" onclick="jQuery(\'#%sopen, #%sclosed, #%sdesc\').toggle()">' % (itemid, itemid, itemid))
             outfile.write('<span id="%sopen" style="display:none">&#x2296;</span><span id="%sclosed">&#x2295;</span> %s\n' % (itemid, itemid, item.name)) 
-            outfile.write('</div --projname-->\n')
+            outfile.write('</div>\n')
             outfile.write('<div id="%sdesc" class="projdesc" style="display:none;">\n' % itemid)
             outfile.write(open(item.name+'.html', 'r', encoding='utf-8').read().encode('ascii','xmlcharrefreplace').decode())
-            outfile.write('</div  --projdesc-->\n')
-            outfile.write('</div --whatever-project-->\n')
+            outfile.write('</div>\n')
+            outfile.write('</div>\n')
         if inelectives:
-            outfile.write('</div --electives-->\n')
+            outfile.write('</div>\n')
         
 
     
