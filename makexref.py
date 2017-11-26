@@ -27,11 +27,35 @@ class Project:
         self.key = (self.level, not self.required, self.value, self.order)
         Path.get(path).projects.append(self)
         
+class Multout:
+    def __init__(self):
+        self.files = []
+    def add(self, handle):
+        self.files.append(handle)
+    def write(self, str):
+        for f in self.files:
+            f.write(str)
+    def delete(self, handle):
+        try:
+            del self.files[self.files.index(handle)]
+        except Exception:
+            print(sys.exc_info())
+        
 levels = {1: "Mastering Fundamentals",
           2: "Learning Your Style",
           3: "Increasing Knowledge",
           4: "Building Skills",
           5: "Demonstrating Expertise"}
+        
+styleinfo = """    <style type="text/css">
+    .pathname {font-size: 175%; font-weight: bold; background: #004165; color: white; padding: 3px;}
+    .level {font-size: 150%; font-weight: bold; background: #f2df7480; margin-top: 1em; padding: 3px; margin-bottom: 0.5em;}
+    .projname {font-size: 125%; font-weight: bold; color: #772432}
+    .electives {background: #00416520; }
+    .electives-header {font-size: 135%; font-weight: bold; background: #00416520; color: black; margin-top: 1em; padding-bottom: 0.5em;}
+    .projdesc {margin-bottom: 2em;}
+    </style>
+"""
 
 book = xlrd.open_workbook('Projects.xlsx')
 os.chdir('data')
@@ -65,6 +89,12 @@ for rownum in range(1, sheet.nrows):
     path.blurb = sheet.cell_value(rownum, 1)
             
 # OK, now create the output
+            
+outfiles = Multout()
+allout = open("Allpaths.html", "w", encoding="utf-8")
+outfiles.add(allout)
+allout.write(styleinfo)
+
 
 for p in pathcols:
     pathname = colnames[p]
@@ -72,45 +102,39 @@ for p in pathcols:
     path = Path.get(pathname)
     path.projects.sort(key=lambda item:item.key)
     with open('Path ' + pathname + '.html', 'w', encoding='utf-8') as outfile:
-        outfile.write("""    <style type="text/css">
-    .pathname {font-size: 175%; font-weight: bold; background: #004165; color: white; padding: 3px;}
-    .level {font-size: 150%; font-weight: bold; background: #f2df7480; margin-top: 1em; padding: 3px; margin-bottom: 0.5em;}
-    .projname {font-size: 125%; font-weight: bold; color: #772432}
-    .electives {background: #00416520; }
-    .electives-header {font-size: 135%; font-weight: bold; background: #00416520; color: black; margin-top: 1em; padding-bottom: 0.5em;}
-    .projdesc {margin-bottom: 2em;}
-    </style>
-""")
-        outfile.write('<h2 class="pathname">%s</h2>\n' % pathname)
-        outfile.write('<p class="blurb">%s</p>\n' % path.blurb)
+        outfiles.add(outfile)
+        outfile.write(styleinfo)
+        outfiles.write('<h2 class="pathname">%s</h2>\n' % pathname)
+        outfiles.write('<p class="blurb">%s</p>\n' % path.blurb)
         level = 0
         inelectives = False
         for item in path.projects:
             if item.level != level:
                 if inelectives:
-                  outfile.write('</div>\n')
-                outfile.write('<h3 class="level">Level %s: %s</h3>\n' % (item.level, levels[item.level]))
+                  outfiles.write('</div>\n')
+                outfiles.write('<h3 class="level">Level %s: %s</h3>\n' % (item.level, levels[item.level]))
                 level = item.level
                 inelectives = False
                 itemnum = 0
             itemnum += 1
             itemid = '%s%s%s' % (pathid, level, itemnum)
             if not inelectives and not item.required:
-                outfile.write('<div class="electives-header">Electives (Choose %d)</div>\n' % [0, 0, 0, 2, 1, 1][level])   
-                outfile.write('<div class="electives">\n')
+                outfiles.write('<div class="electives-header">Electives (Choose %d)</div>\n' % [0, 0, 0, 2, 1, 1][level])   
+                outfiles.write('<div class="electives">\n')
                 inelectives = True
-            outfile.write('<div class="%s-project">\n' % ('req' if item.required else 'elective'))
+            outfiles.write('<div class="%s-project">\n' % ('req' if item.required else 'elective'))
 
-            outfile.write('<div class="projname" onclick="jQuery(\'#%sopen, #%sclosed, #%sdesc\').toggle()">' % (itemid, itemid, itemid))
-            outfile.write('<span id="%sopen" style="display:none">&#x2296;</span><span id="%sclosed">&#x2295;</span> %s\n' % (itemid, itemid, item.name)) 
-            outfile.write('</div>\n')
-            outfile.write('<div id="%sdesc" class="projdesc" style="display:none;">\n' % itemid)
-            outfile.write(open(item.name+'.html', 'r', encoding='utf-8').read().encode('ascii','xmlcharrefreplace').decode())
-            outfile.write('</div>\n')
-            outfile.write('</div>\n')
+            outfiles.write('<div class="projname" onclick="jQuery(\'#%sopen, #%sclosed, #%sdesc\').toggle()">' % (itemid, itemid, itemid))
+            outfiles.write('<span id="%sopen" style="display:none">&#x2296;</span><span id="%sclosed">&#x2295;</span> %s\n' % (itemid, itemid, item.name)) 
+            outfiles.write('</div>\n')
+            outfiles.write('<div id="%sdesc" class="projdesc" style="display:none;">\n' % itemid)
+            outfiles.write(open(item.name+'.html', 'r', encoding='utf-8').read().encode('ascii','xmlcharrefreplace').decode())
+            outfiles.write('</div>\n')
+            outfiles.write('</div>\n')
         if inelectives:
-            outfile.write('</div>\n')
+            outfiles.write('</div>\n')
         
+        outfiles.delete(outfile)
 
     
             
