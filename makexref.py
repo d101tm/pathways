@@ -15,6 +15,7 @@ class Path:
     def __init__(self, name):
         self.name = name
         self.projects = []
+        self.blurb = ''
 
 class Project:
     def __init__(self, name, order, path, value):
@@ -26,10 +27,17 @@ class Project:
         self.key = (self.level, not self.required, self.value, self.order)
         Path.get(path).projects.append(self)
         
+levels = {1: "Mastering Fundamentals",
+          2: "Learning Your Style",
+          3: "Increasing Knowledge",
+          4: "Building Skills",
+          5: "Demonstrating Expertise"}
 
 book = xlrd.open_workbook('Projects.xlsx')
 os.chdir('data')
-sheet = book.sheet_by_index(0)
+
+# Get the projects
+sheet = book.sheet_by_name('Projects')
 colnames = sheet.row_values(0)
 
 # Create paths
@@ -49,6 +57,13 @@ for rownum in range(1,sheet.nrows):
         if val:
             Project(name, order, colnames[p], val)
             
+# Now, get the blurbs for each path
+sheet = book.sheet_by_name('Paths')
+for rownum in range(1, sheet.nrows):
+    pathname = sheet.cell_value(rownum, 0)
+    path = Path.get(pathname)
+    path.blurb = sheet.cell_value(rownum, 1)
+            
 # OK, now create the output
 
 for p in pathcols:
@@ -57,40 +72,44 @@ for p in pathcols:
     path = Path.get(pathname)
     path.projects.sort(key=lambda item:item.key)
     with open('Path ' + pathname + '.html', 'w', encoding='utf-8') as outfile:
-        outfile.write("""    <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
-    <script>
-        jQ = jQuery.noConflict();
-    </script>
-    <style type="text/css">
+        outfile.write("""    <style type="text/css">
+    .pathname {font-size: 175%; font-weight: bold; background: #004165; color: white;}
+    .level {font-size: 150%; font-weight: bold; background: #f2df7480}
+    .projname {font-size: 125%; font-weight: bold; color: #772432}
+    .electives {background: #00416520; }
+    .electives-header {font-size: 135%; font-weight: bold; background: #00416520; color: black; margin-top: 1em; padding-bottom: 1em;}
     </style>
-    """)
-        outfile.write('<h2>%s</h2>' % pathname)
+""")
+        outfile.write('<h2 class="pathname">%s</h2>\n' % pathname)
+        outfile.write('<p class="blurb">%s</p>\n' % path.blurb)
         level = 0
-        electives = []
+        inelectives = False
         for item in path.projects:
             if item.level != level:
-                outfile.write('<h3>Level %s</h3>' % item.level)
+                if inelectives:
+                  outfile.write('</div --electives-->\n')
+                outfile.write('<h3 class="level">Level %s: %s</h3>\n' % (item.level, levels[item.level]))
                 level = item.level
                 inelectives = False
                 itemnum = 0
             itemnum += 1
             itemid = '%s%s%s' % (pathid, level, itemnum)
-            if item.required:
-                outfile.write('<div class="req-project">\n')
-                outfile.write('<div class="projname">%s</div>\n' % item.name)
-            elif not inelectives:
-                outfile.write('<h4>Electives (Choose %d)</h4>\n' % [0, 0, 0, 2, 1, 1][level])   
+            if not inelectives and not item.required:
+                outfile.write('<div class="electives-header">Electives (Choose %d)</div>\n' % [0, 0, 0, 2, 1, 1][level])   
+                outfile.write('<div class="electives">\n')
                 inelectives = True
-            if not item.required:
-                outfile.write('<div class="elective-project" id="%s">\n' % itemid)
-                outfile.write('<div class="projname" onclick="jQ(\'#%sopen, #%sclosed, #%sdesc\').toggle()">' % (itemid, itemid, itemid))
-                outfile.write('<span id="%sopen" style="display:none">&#x25be; %s</span>\n' % (itemid, item.name)) 
-                outfile.write('<span id="%sclosed">&#x25b8; %s</span>' % (itemid, item.name))
-                outfile.write('<div id="%sdesc" style="display:none;">\n' % itemid)
+            outfile.write('<div class="%s-project">\n' % ('req' if item.required else 'elective'))
+
+            outfile.write('<div class="projname" onclick="jQuery(\'#%sopen, #%sclosed, #%sdesc\').toggle()">' % (itemid, itemid, itemid))
+            outfile.write('<span id="%sopen" style="display:none">&#x2296; %s</span>\n' % (itemid, item.name)) 
+            outfile.write('<span id="%sclosed">&#x2295; %s</span>' % (itemid, item.name))
+            outfile.write('</div --projname-->\n')
+            outfile.write('<div id="%sdesc" style="display:none;">\n' % itemid)
             outfile.write(open(item.name+'.html', 'r', encoding='utf-8').read().encode('ascii','xmlcharrefreplace').decode())
-            if not item.required:
-                outfile.write('</div>\n')
-            outfile.write('</div>\n')
+            outfile.write('</div  --projdesc-->\n')
+            outfile.write('</div --whatever-project-->\n')
+        if inelectives:
+            outfile.write('</div --electives-->\n')
         
 
     
