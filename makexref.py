@@ -57,6 +57,10 @@ styleinfo = """    <style type="text/css">
     </style>
 """
 
+def cleanup(s):
+    """Remove extraneous newlines (all not before a tag)"""
+    return s.replace('\n<', '\x00').replace('\n',' ').replace('\x00','\n<').strip()
+
 book = xlrd.open_workbook('Projects.xlsx')
 os.chdir('data')
 
@@ -141,7 +145,7 @@ for p in pathcols:
             outfiles.write('<span id="%sopen" style="display:none">&#x2296;</span><span id="%sclosed">&#x2295;</span> %s\n' % (itemid, itemid, item.name)) 
             outfiles.write('</div>\n')
             outfiles.write('<div id="%sdesc" class="projdesc" style="display:none;">\n' % itemid)
-            outfiles.write(open(item.name+'.html', 'r', encoding='utf-8').read().encode('ascii','xmlcharrefreplace').decode())
+            outfiles.write(cleanup(open(item.name+'.html', 'r', encoding='utf-8').read().encode('ascii','xmlcharrefreplace').decode()))
             outfiles.write('</div>\n')
             outfiles.write('</div>\n')
         if inelectives:
