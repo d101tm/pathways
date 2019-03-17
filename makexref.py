@@ -24,7 +24,7 @@ class Project:
         self.value = value
         self.level = int(self.value[0])
         self.required = 'R' in self.value
-        self.key = (self.level, not self.required, self.value, self.order)
+        self.key = (self.level, not self.required, self.value, self.name)
         Path.get(path).projects.append(self)
         
 class Multout:
