@@ -1,0 +1,6 @@
+Create the Pathways 'code' module for D101TM.ORG.
+
+Uses the project descriptions in the 'projects' subdirectory and the 
+Google spreadsheet showing project/path relations (the name is hard-coded
+in 'makexref.py'); creates output/allpaths.html, which can be copied into
+a webpage (in this case, as a Divi 'code' module).
